@@ -1,6 +1,5 @@
 using UnityEngine;
-using UnityEngine.UI; // For standard UI Text
-using TMPro; // For TextMeshPro
+using UnityEngine.UI;
 
 public class PlayerController : MonoBehaviour
 {
@@ -11,17 +10,13 @@ public class PlayerController : MonoBehaviour
     public Text coinsText; // For standard UI Text
     public Text keysText; // For standard UI Text
     public Text healthText; // For standard UI Text
+    public GameObject gameOverScreen; // Reference to the game over screen GameObject
 
-    // public TextMeshProUGUI coinsText; // Uncomment this if you are using TextMeshPro
-    // public TextMeshProUGUI keysText; // Uncomment this if you are using TextMeshPro
-    // public TextMeshProUGUI healthText; // Uncomment this if you are using TextMeshPro
-
-    public GameObject gameOverPanel; // Reference to the Game Over Panel
+    private bool isGameOver = false; // Flag to track game over state
 
     void Start()
     {
         UpdateUI();
-        gameOverPanel.SetActive(false); // Ensure the Game Over Panel is hidden at the start
     }
 
     public void IncreaseCoins()
@@ -45,15 +40,61 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(int amount)
     {
+        if (isGameOver) return; // Exit early if game over
+
         health -= amount;
         if (health < 0) health = 0;
         UpdateUI();
-        Debug.Log("Player Health: " + health);
 
         if (health <= 0)
         {
-            GameOver();
+            // Game Over logic here (show Game Over screen, restart level, etc.)
+            Debug.Log("Game Over");
+
+            // Activate game over screen
+            if (gameOverScreen != null)
+            {
+                gameOverScreen.SetActive(true);
+            }
+            else
+            {
+                Debug.LogError("gameOverScreen reference is not set in the Inspector!");
+            }
+
+            isGameOver = true; // Set game over flag
+            
+            // Disable Rigidbody
+            Rigidbody playerRigidbody = GetComponent<Rigidbody>();
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.isKinematic = true; // Disable physics interactions
+            }
+            else
+            {
+                Debug.LogError("Rigidbody component not found on player GameObject!");
+            }
+
+            DisablePlayerInput(); // Disable player input
         }
+    }
+
+    private void DisablePlayerInput()
+    {
+        // Implement logic to disable player input here
+        // Replace 'CharacterMovement' with the actual script responsible for character movement
+
+        // Example: Disable CharacterMovement script
+        CharacterMovement characterMovement = GetComponent<CharacterMovement>();
+        if (characterMovement != null)
+        {
+            characterMovement.enabled = false;
+        }
+        else
+        {
+            Debug.LogError("CharacterMovement component not found on player GameObject!");
+        }
+
+        // Add more disabling logic as needed for your specific game
     }
 
     private void UpdateUI()
@@ -63,11 +104,5 @@ public class PlayerController : MonoBehaviour
         healthText.text = "Health: " + health;
     }
 
-    private void GameOver()
-    {
-        gameOverPanel.SetActive(true); // Show the Game Over Panel
-        Time.timeScale = 0; // Pause the game
-    }
-
-    // Other player control methods...
+    // OnTriggerEnter2D is called when the Collider2D other enters the trigger (2D physics only)
 }
